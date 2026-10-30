@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chúc mừng sinh nhật yêu!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2f4a6b;--font:"Mali","Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:#ffffff;color:var(--ink);font-family:var(--font)}
+body{min-height:100svh;overflow-x:hidden}
+button{font:inherit;color:inherit}
+
+.sprite{position:relative;width:min(var(--w),var(--maxw,40vw));pointer-events:none}
+.layer{position:absolute;inset:0;transition:opacity .22s}
+.layer img{width:100%;height:100%;display:block;object-fit:contain;-webkit-user-drag:none;user-select:none}
+.layer.active{opacity:0}
+.is-active .layer.active{opacity:1}
+.is-active .layer.default{opacity:0}
+.obj{background:none;border:0;padding:0;display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.obj:hover{transform:translate3d(0,-6px,0) scale(1.03)}
+.obj:active{transform:scale(.97)}
+.obj:disabled{cursor:default;transform:none}
+:focus-visible{outline:3px solid var(--ink);outline-offset:6px}
+
+.gate{position:fixed;inset:0;z-index:80;margin:auto;width:max-content;height:max-content;display:flex;flex-direction:column;align-items:center;gap:18px;
+  background:none;border:0;cursor:pointer;transition:transform .8s cubic-bezier(.6,0,.3,1),opacity .8s;-webkit-tap-highlight-color:transparent}
+.gate .sprite{animation:float 2.6s ease-in-out infinite}
+.gate.exit{transform:scale(1.9);opacity:0;pointer-events:none}
+.gate small{font-size:15px}
+@keyframes float{0%,100%{transform:translate3d(0,-8px,0) scale(1)}50%{transform:translate3d(0,8px,0) scale(1.05)}}
+
+.scene{--cake:min(460px,34vw);--tuck:clamp(24px,4vw,64px);visibility:hidden;min-height:100svh;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:clamp(0px,.6vw,8px);padding:110px 4vw 6vh}
+.scene.show{visibility:visible}
+.L{justify-self:end;position:relative}
+.R{position:relative;justify-self:start;display:flex;flex-direction:column;align-items:flex-start;gap:clamp(6px,1.4vw,16px)}
+.cakeCol{width:var(--cake);position:relative;z-index:5}
+
+.side{position:absolute;bottom:0;z-index:1}
+.side-l{right:calc(100% - var(--tuck) - 100px);--lw:min(240px,19vw)}
+.side-r{left:calc(100% - var(--tuck) - 100px);--lw:min(300px,20vw)}
+.side .sprite{width:min(var(--w),var(--maxw),calc(4vw + (92vw - var(--cake)) / 2 - var(--lw) + var(--tuck)),calc(66svh * var(--arn)))}
+#wrap,.R>.item:first-child{position:relative;z-index:2}
+.cardItem{position:absolute;right:-20%;bottom:-3%;z-index:6}
+.item{opacity:0}
+.scene.show .item{animation:enter .8s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:calc(var(--i) * .16s + .4s)}
+@keyframes enter{from{opacity:0;transform:translate3d(0,36px,0) scale(.88)}to{opacity:1;transform:none}}
+@media (max-width:760px){
+  .scene{grid-template-columns:1fr 1fr;row-gap:32px;align-items:start;padding-top:90px}
+  .cakeCol{grid-column:1/-1;grid-row:1;justify-self:center;width:min(380px,82vw)}
+  .L,.R{grid-row:2;justify-self:center}
+  .R{align-items:center}
+  .side{position:fixed}.side-l{right:auto;left:0}.side-r{left:auto;right:0}
+  .side .sprite{width:min(var(--w),24vw,calc(34svh * var(--arn)))}
+  .sprite{width:min(var(--w),calc(var(--maxw) * 1.7))}
+}
+
+.cake{position:relative}
+.cake .base{width:100%;display:block;-webkit-user-drag:none}
+.deco{position:absolute;height:auto;pointer-events:none;-webkit-user-drag:none;transform:scale(1.7)}
+.dl{left:14%;top:2%;width:22%}
+.dr{left:62%;top:0;width:26%}
+#flame{position:absolute;left:var(--fx);top:var(--fy);width:44px;height:104px;transform:translate3d(-50%,-100%,0);background:none;border:0;padding:0;cursor:pointer;z-index:2}
+#flame .stick{position:absolute;bottom:0;left:50%;width:12px;height:46px;margin-left:-6px;border:2.5px solid var(--ink);
+  background:repeating-linear-gradient(45deg,#fff 0 6px,#93c5fd 6px 12px)}
+#flame .fl{position:absolute;bottom:46px;left:50%;width:16px;height:30px;margin-left:-8px;opacity:0;transform:scale(0);transform-origin:50% 100%;
+  background:radial-gradient(ellipse at 50% 70%,#f0faff 0,#7cc4ff 40%,#2563eb 90%);border-radius:50% 50% 50% 50%/65% 65% 35% 35%;transition:opacity .2s,transform .3s}
+#flame .glow{position:absolute;bottom:30px;left:50%;width:180px;height:180px;margin-left:-90px;opacity:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(90,170,255,.6),rgba(90,170,255,0) 65%);transition:opacity .4s}
+#flame.lit .fl{opacity:1;transform:scale(1);animation:flicker .16s ease-in-out infinite alternate}
+#flame.lit .glow{opacity:1;animation:pulse .9s ease-in-out infinite alternate}
+@keyframes flicker{from{transform:scale(1,1) rotate(-3deg)}to{transform:scale(.9,1.1) rotate(3deg)}}
+@keyframes pulse{from{transform:scale(.9)}to{transform:scale(1.1)}}
+#dim{position:fixed;inset:0;z-index:40;opacity:0;pointer-events:none;transition:opacity .6s;
+  background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),rgba(120,180,255,.1) 0,rgba(5,10,30,.35) 70px,rgba(5,10,30,.85) 260px)}
+#dim.on{opacity:1;pointer-events:auto;cursor:pointer}
+
+#fx{position:fixed;inset:0;z-index:30;pointer-events:none;overflow:hidden}
+.art{position:fixed;left:0;top:0;z-index:20;touch-action:none;cursor:grab;will-change:transform;user-select:none;-webkit-user-select:none}
+.art.drag{cursor:grabbing}
+.art-in{pointer-events:auto;animation:pop .9s cubic-bezier(.3,1.6,.5,1) both}
+.art .sprite{filter:drop-shadow(0 8px 14px rgba(0,0,0,.18))}
+
+.gif{position:fixed;z-index:39;pointer-events:none}
+.gif-in{width:100%;height:100%;will-change:transform,opacity}
+.gif-in img,.gif-in video,.gif-in iframe{width:100%;height:100%;border:0;display:block;object-fit:contain}
+@keyframes pop{0%{opacity:0;transform:translate3d(0,50px,0) scale(.1) rotate(-12deg)}60%{opacity:1;transform:translate3d(0,-12px,0) scale(1.12) rotate(3deg)}100%{opacity:1;transform:none}}
+
+#lightbox{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(8,12,24,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);transition:background-color .45s,backdrop-filter .45s,-webkit-backdrop-filter .45s;cursor:zoom-out}
+#lightbox[hidden]{display:none}
+#lightbox.open{background:rgba(8,12,24,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#lightbox .x{color:#fff}
+#lbArt{transform-origin:0 0;will-change:transform}
+#lbBox{display:flex;flex-direction:column;align-items:center;gap:14px}
+#lbHD{color:#fff;font:600 14px/1 var(--font);text-decoration:underline;text-underline-offset:3px;padding:9px 16px;border-radius:999px;background:rgba(255,255,255,.14);cursor:pointer;opacity:0;transition:opacity .35s .25s,background .2s}
+#lbHD:hover{background:rgba(255,255,255,.26)}
+#lightbox.open #lbHD{opacity:1}
+#lbArt .sprite{width:min(var(--w),96vw,calc((100vh - 76px) * var(--arn)));filter:drop-shadow(0 14px 40px rgba(0,0,0,.5))}
+.x{position:absolute;top:12px;right:12px;width:44px;height:44px;border:0;background:none;font-size:24px;cursor:pointer}
+
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.4);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.modal.open{opacity:1;visibility:visible}
+.paper{position:relative;width:min(520px,100%);max-height:88svh;overflow:auto;padding:44px 36px 36px;background:#fffdf5;box-shadow:0 20px 50px rgba(0,0,0,.3);
+  transform:translate3d(0,30px,0) rotate(-1.5deg) scale(.95);transition:transform .45s cubic-bezier(.2,1.2,.4,1);
+  background-image:repeating-linear-gradient(transparent 0 31px,#dbe7f5 31px 32px)}
+.modal.open .paper{transform:none}
+.paper h2{margin:0 0 14px;font-size:24px;line-height:1.3}
+.paper p{margin:0 0 16px;line-height:32px;font-size:17px}
+.paper .sign{text-align:right;font-weight:700;margin:6px 0 0}
+
+.player{position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;z-index:50;display:flex;align-items:center;background:#fff;border:1.5px solid var(--ink);
+  border-radius:999px;opacity:0;pointer-events:none;transform:translate3d(0,-24px,0);transition:opacity .6s .5s,transform .6s .5s}
+.player.show{opacity:1;pointer-events:auto;transform:none}
+.pl-track{display:flex;align-items:center;gap:10px;background:none;border:0;padding:9px 6px 9px 16px;cursor:pointer;font-size:13px;max-width:calc(56vw - 40px)}
+.pl-track span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-mute{width:34px;height:34px;margin:3px 0 3px 2px;border:1.5px solid var(--ink);border-radius:50%;background:none;color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0}
+.pl-mute .off{display:none}.muted .pl-mute .on{display:none}.muted .pl-mute .off{display:inline}
+.pl-toggle{width:34px;height:34px;margin:3px;border:0;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;cursor:pointer}
+.eq{display:flex;align-items:flex-end;gap:2px;height:14px;flex:none}
+.eq i{width:3px;height:100%;background:var(--ink);transform:scaleY(.25);transform-origin:bottom}
+.playing .eq i{animation:eq .7s ease-in-out infinite alternate}
+.playing .eq i:nth-child(2){animation-delay:.2s}.playing .eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{to{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<button class="gate" id="gate" data-sprite="sticker" aria-label="Mở món quà sinh nhật"><small>Chạm để bắt đầu</small></button>
+
+<main class="scene" id="scene">
+  <div class="L item" style="--i:0"><div class="side side-l" data-sprite="bouquet" aria-hidden="true"></div><button class="obj" id="wrap" data-sprite="wrap" aria-label="Mở gói quà"></button></div>
+  <div class="cakeCol item" style="--i:1">
+    <div class="cake" id="cake">
+      <img class="base" id="imgCake" alt="Bánh sinh nhật">
+      <img class="deco dl" id="imgL" alt=""><img class="deco dr" id="imgR" alt="">
+      <button id="flame" aria-label="Thắp nến"><span class="glow"></span><span class="fl"></span><span class="stick"></span></button>
+      <div class="cardItem"><button class="obj" id="card" data-sprite="card" aria-label="Mở thiệp"></button></div>
+    </div>
+  </div>
+  <div class="R">
+    <div class="item" style="--i:2"><button class="obj" id="box" data-sprite="box" aria-label="Mở hộp quà"></button></div>
+    <div class="side side-r item" data-sprite="bdaycat" style="--i:3" aria-hidden="true"></div>
+  </div>
+</main>
+
+<div id="dim"></div>
+<div id="fx"></div>
+
+<div class="modal" id="letter" aria-hidden="true" role="dialog" aria-label="Thiệp sinh nhật">
+  <div class="paper"><button class="x" aria-label="Gấp thiệp lại">✕</button><div id="letterBody"></div></div>
+</div>
+<div id="lightbox" hidden><button class="x" aria-label="Thu nhỏ">✕</button><div id="lbBox"><div id="lbArt"></div><a id="lbHD" target="_blank" rel="noopener noreferrer"></a></div></div>
+
+<div class="player" id="player">
+  <button class="pl-track" id="plTrack" aria-label="Chuyển bài tiếp theo"><span class="eq"><i></i><i></i><i></i></span><span id="plTitle"></span></button>
+  <button class="pl-mute" id="plMute" aria-label="Tắt tiếng nhạc" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="pl-toggle" id="plToggle" aria-label="Phát / tạm dừng">▶</button>
+</div>
+
+<script>
+const CONFIG = {
+  images: { cake:'bdaycake.png', decoLeft:'happyHachi.png', decoRight:'flowerHachi.png' },
+  flame: { x:'50%', y:'26%' },
+  sprites: {
+    sticker: { w:220, h:220, maxw:55, default:'SweetBabyHachiware2.png', active:'HachiSmug.png' },
+    card:    { w:280, h:220, maxw:30, default:'envelopeclose.png', active:'envelopeopen.png' },
+    wrap:    { w:240, h:280, maxw:19, default:'wrapclose.png', active:'wrapopen.png' },
+    box:     { w:300, h:300, maxw:20, default:'boxclose.png', active:'boxopen.png' },
+    artwork: { w:260, h:320, maxw:30, default:'stenny.png' },
+    plushie: { w:350, h:350, maxw:20, default:'bdayHachi.png' },
+    bouquet: { w:560, h:532, maxw:34, default:'bouquet.png' },
+    bdaycat: { w:560, h:756, maxw:34, default:'bdaycat.png' }
+  },
+  gifs: ['<iframe src="https://giphy.com/embed/OqKrj1ARvDxne2oqFT" width="480" height="269" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/chiikawa-hachiware-OqKrj1ARvDxne2oqFT">via GIPHY</a></p>',
+          '<iframe src="https://giphy.com/embed/lopdReXnv4iOLFPPft" width="480" height="480" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/chiikawa-hachiware-dragoseppia-lopdReXnv4iOLFPPft">via GIPHY</a></p>',
+          '<iframe src="https://giphy.com/embed/1WznPsVFUDePeEB2fv" width="466" height="480" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/stickers/transparent-yeibee-chiikawa-1WznPsVFUDePeEB2fv">via GIPHY</a></p>',
+          '<iframe src="https://giphy.com/embed/EoHuUABsiGOJrbZsIJ" width="480" height="274" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/chiikawa-hachiware-EoHuUABsiGOJrbZsIJ">via GIPHY</a></p>',
+          '<iframe src="https://giphy.com/embed/66dVwyAuz1tBKbKB07" width="480" height="269" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sparkle-chiikawa-momonga-66dVwyAuz1tBKbKB07">via GIPHY</a></p>',
+          '<iframe src="https://giphy.com/embed/3zNN1pEsLmDVG5D5uh" width="466" height="480" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/stickers/transparent-chiikawa-yeibee-3zNN1pEsLmDVG5D5uh">via GIPHY</a></p>',
+          'https://static2.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/2f/73/1wZ1G5x1MfwCHDub.gif',
+          'https://static2.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/44/76/eeMr2Ye3tN2afFenU4.gif',
+          'https://static2.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/30/40/ZGASL129OqQEI.gif',
+          'https://static2.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/b9/26/9ALRYVMbhLpPfZpK.gif',
+          'https://static2.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/6f/74/Z5AHDPN3pJfDa.gif',
+          'https://static2.klipy.com/ii/cfb42878805dcb270f51b28683e7455a/29/67/rXYCCnDMnAeE1Qphx.gif',
+          'https://static2.klipy.com/ii/e1b92bb53e0c9e442408bc677a56c789/01/fd/5vnVg9oWX30BW.gif',
+          'https://static2.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/98/07/YzevpeaN5cqUOj.gif',
+          'https://static2.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/91/04/zCG944w6.gif',
+          'https://static2.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/75/95/flIFCzEhGthpWK4.gif',
+          'https://static2.klipy.com/ii/4e7bea9f7a3371424e6c16ebc93252fe/78/b5/zHIVHuOl6PlPNUgYm7.gif',
+          'https://static2.klipy.com/ii/e1b92bb53e0c9e442408bc677a56c789/12/4c/6GHuqtd7Pz3A.gif',
+          'https://static2.klipy.com/ii/a8ada81afc59159ea5c8927feffa2e31/fb/e4/jnRMckuuOqAw68IttsXj.gif'
+  ],
+  artworkHD: { url: 'https://drive.google.com/drive/folders/16hgnmjOWrxmJ0uaoa-IhKE98l3fZAW-r?usp=sharing', text: 'Xem bản chất lượng cao hơn' },
+  musicVolume: 0.3,
+  sfx: ['oi.mp3', 'naninani.mp3', 'sugoisugoi.mp3', 'soda.mp3'],
+  playlist: [
+    {title:'For You - Troy Javelona', src:'For You.mp3'},
+    {title:'Golden Hour - JVKE',     src:'Golden Hour.mp3'},
+    {title:'cuộc dạo chơi - Phuc海福', src:'Cuộc Dạo Chơi.mp3'}
+  ],
+
+  letter: {
+    title:'Gửi tình yêu của anh,',
+    body:['Trước hết, chúc mừng sinh nhật em! Mong tuổi 17 của em thật nhẹ nhàng, thật nhiều may mắn và nhiều sức khỏe!',
+          'Đây sẽ là lần sinh nhật em đầu tiên mà có anh đón cùng, với tư cách là người yêu, là bạn trai em. Anh thấy bản thân mình cũng quan trọng phết hì hì. Nhưng cũng tiếc rằng sinh nhật mình không thể ở cạnh bên nhau, và anh cũng khó có thể tặng cho em món quà vật lý nào đó, vậy nên anh đã tạo những thứ này để tặng em :3',
+          'Bởi vì em phải tới Chuyên Lào Cai nội trú và ôn tập cho đội tuyển nên em bận rộn hơn, phải tập trung học xong về kí túc xá cũng phải làm nhiều việc mà anh thương lắm. Nhưng anh đôi lúc cũng thấy hơi khó khăn, lúng túng không biết làm gì để giúp em thấy thoải mái hơn. Do đó anh đã cố gắng vẽ nên một bức tranh mà anh nghĩ sẽ giúp em vui lên, dù anh không tự tin vào trình độ của bản thân nhưng anh tự tin rằng đây có thể là món quà mà em thích!',
+          'Ngoài tranh vẽ ra, anh cũng đã tạo những thứ lặt vặt để nghịch, khá là silly nhưng khả năng anh hơi có hạn nên không có gì thú vị hơn hẳn lắm hic hic.',
+          'Dù sao thì, cảm ơn em vì đã luôn ở đây bên anh. Hãy thổi nến, ước một điều thật to lớn nhé. Anh tin rằng điều ước đó sẽ trở thành hiện thực thôi!',
+          'Anh yêu em, yêu em rất nhiều, yêu em trọn vẹn! Một lần nữa, chúc mừng sinh nhật em nhé!'
+        ],
+    sign:'— Tình yêu của em'
+  }
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const pick = (n, last) => { let i; do i = Math.floor(Math.random() * n); while (n > 1 && i === last); return i; };
+
+function sprite(cfg){
+  const el = document.createElement('div');
+  el.className = 'sprite';
+  el.style.cssText = `--w:${cfg.w}px;--arn:${cfg.w/cfg.h};--maxw:${cfg.maxw}vw;aspect-ratio:${cfg.w}/${cfg.h}`;
+  for (const st of ['default','active']){
+    if (!cfg[st]) continue;
+    const layer = document.createElement('div'), img = new Image();
+    layer.className = 'layer ' + st; img.src = cfg[st]; img.alt = ''; img.draggable = false;
+    layer.append(img); el.append(layer);
+  }
+  return el;
+}
+document.querySelectorAll('[data-sprite]').forEach(h => h.prepend(sprite(CONFIG.sprites[h.dataset.sprite])));
+$('#imgCake').src = CONFIG.images.cake; $('#imgL').src = CONFIG.images.decoLeft; $('#imgR').src = CONFIG.images.decoRight;
+$('#cake').style.setProperty('--fx', CONFIG.flame.x); $('#cake').style.setProperty('--fy', CONFIG.flame.y);
+
+const PL = CONFIG.playlist, audio = new Audio(), player = $('#player'), plToggle = $('#plToggle');
+audio.volume = CONFIG.musicVolume;
+let ti = 0, playing = false;
+function setPlaying(v){ playing=v; player.classList.toggle('playing',v); plToggle.textContent = v ? '❚❚' : '▶'; }
+function startAudio(){ audio.play().then(()=>setPlaying(true)).catch(()=>setPlaying(false)); }
+function loadTrack(i, autoplay=true){
+  ti = (i + PL.length) % PL.length; audio.src = PL[ti].src;
+  $('#plTitle').textContent = '♫ ' + PL[ti].title;
+  if (autoplay) startAudio();
+}
+audio.addEventListener('ended', () => loadTrack(ti+1));
+audio.addEventListener('error', () => setPlaying(false));
+$('#plTrack').onclick = () => loadTrack(ti+1);
+plToggle.onclick = e => { e.stopPropagation(); if (playing){ audio.pause(); setPlaying(false); } else startAudio(); };
+const plMute = $('#plMute');
+plMute.onclick = () => {
+  audio.muted = !audio.muted; player.classList.toggle('muted', audio.muted);
+  plMute.setAttribute('aria-pressed', audio.muted); plMute.setAttribute('aria-label', audio.muted ? 'Bật tiếng nhạc' : 'Tắt tiếng nhạc');
+};
+loadTrack(0, false);
+
+const gate = $('#gate');
+gate.onclick = () => {
+  if (gate.classList.contains('exit')) return;
+  gate.classList.add('exit','is-active');
+  startAudio();
+  player.classList.add('show'); $('#scene').classList.add('show');
+  setTimeout(() => gate.hidden = true, 850);
+};
+
+const flame = $('#flame'), dim = $('#dim');
+let lit = false;
+function aimSpotlight(){
+  const r = flame.getBoundingClientRect();
+  dim.style.setProperty('--fx', r.left + r.width/2 + 'px'); dim.style.setProperty('--fy', r.top + r.height*.3 + 'px');
+}
+flame.onclick = e => { e.stopPropagation(); if (lit) return; lit = true; flame.classList.add('lit'); aimSpotlight(); dim.classList.add('on'); };
+function blowOut(){ if (!lit) return; lit = false; flame.classList.remove('lit'); dim.classList.remove('on'); }
+dim.addEventListener('click', blowOut);
+
+const card = $('#card'), letter = $('#letter');
+$('#letterBody').innerHTML = `<h2>${CONFIG.letter.title}</h2>${CONFIG.letter.body.map(t => `<p>${t}</p>`).join('')}<p class="sign">${CONFIG.letter.sign}</p>`;
+function openLetter(){ card.classList.add('is-active'); letter.classList.add('open'); letter.setAttribute('aria-hidden','false'); $('.x',letter).focus(); }
+function closeLetter(){ card.classList.remove('is-active'); letter.classList.remove('open'); letter.setAttribute('aria-hidden','true'); card.focus(); }
+card.onclick = openLetter;
+$('.x',letter).onclick = closeLetter;
+letter.addEventListener('click', e => { if (e.target === letter) closeLetter(); });
+
+const floats = []; let zTop = 20;
+function floatItem(cfg, origin, label, onTap){
+  const el = document.createElement('div'); el.className = 'art'; el.tabIndex = 0; el.setAttribute('role','button'); el.setAttribute('aria-label', label);
+  const inn = document.createElement('div'); inn.className = 'art-in'; inn.append(sprite(cfg)); el.append(inn); document.body.append(el);
+  const o = origin.getBoundingClientRect();
+  let x = o.left + o.width/2 - el.offsetWidth/2, y = o.top - el.offsetHeight*.7, drag = null;
+  el.put = () => {
+    x = Math.min(Math.max(0, x), innerWidth - el.offsetWidth); y = Math.min(Math.max(0, y), innerHeight - el.offsetHeight);
+    el.style.transform = `translate3d(${x}px,${y}px,0)`;
+  };
+  el.put(); floats.push(el);
+  el.addEventListener('pointerdown', e => {
+    el.setPointerCapture(e.pointerId); el.style.zIndex = Math.min(++zTop, 38);
+    drag = {sx:e.clientX, sy:e.clientY, ox:x, oy:y, moved:false}; el.classList.add('drag');
+  });
+  el.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (Math.hypot(dx,dy) > 5) drag.moved = true;
+    if (drag.moved){ x = drag.ox + dx; y = drag.oy + dy; el.put(); }
+  });
+  const end = e => { if (!drag) return; const m = drag.moved; drag = null; el.classList.remove('drag'); if (!m && e.type==='pointerup' && onTap) onTap(el); };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.addEventListener('keydown', e => { if (onTap && (e.key==='Enter' || e.key===' ')) { e.preventDefault(); onTap(el); } });
+  return el;
+}
+addEventListener('resize', () => floats.forEach(f => f.put()));
+
+const wrap = $('#wrap');
+wrap.onclick = () => {
+  wrap.classList.add('is-active'); wrap.disabled = true;
+  floatItem(CONFIG.sprites.artwork, wrap, 'Phóng to tranh', zoomIn);
+};
+
+const lb = $('#lightbox'), lbArt = $('#lbArt'), A = CONFIG.sprites.artwork;
+lbArt.append(sprite({...A, w:A.w*4, h:A.h*4, maxw:96}));
+const hd = $('#lbHD'); hd.href = CONFIG.artworkHD.url || A.default; hd.textContent = CONFIG.artworkHD.text;
+hd.addEventListener('click', e => e.stopPropagation());
+let zoomEl = null;
+const flip = (from, to) => `translate3d(${from.left-to.left}px,${from.top-to.top}px,0) scale(${from.width/to.width})`;
+function zoomIn(el){
+  zoomEl = el; lb.hidden = false; lbArt.style.transition = 'none';
+  lbArt.style.transform = flip(el.getBoundingClientRect(), lbArt.getBoundingClientRect());
+  void lbArt.offsetWidth; el.style.visibility = 'hidden';
+  requestAnimationFrame(() => { lbArt.style.transition = 'transform .45s cubic-bezier(.2,.8,.2,1)'; lbArt.style.transform = 'none'; lb.classList.add('open'); });
+}
+function zoomOut(){
+  if (lb.hidden) return;
+  lb.classList.remove('open');
+  lbArt.style.transform = flip(zoomEl.getBoundingClientRect(), lbArt.getBoundingClientRect());
+  setTimeout(() => { lb.hidden = true; zoomEl.style.visibility = ''; }, 460);
+}
+lb.addEventListener('click', zoomOut);
+
+const box = $('#box'), fx = $('#fx');
+function confetti(from){
+  const r = from.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height*.4;
+  const C = ['#60a5fa','#f9a8c4','#fde68a','#a7f3d0','#c4b5fd','#93c5fd'];
+  for (let i=0; i<90; i++){
+    const el = document.createElement('i'), s = 6 + Math.random()*7;
+    el.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:${s}px;height:${s*(Math.random()<.5?1:.45)}px;background:${C[i%C.length]};border-radius:${Math.random()<.3?'50%':'1px'}`;
+    fx.append(el);
+    const a = -Math.PI/2 + (Math.random()-.5)*2.4, v = 140 + Math.random()*340;
+    const dx = Math.cos(a)*v, up = Math.sin(a)*v, rot = Math.random()*900 - 450;
+    el.animate([
+      {transform:'translate3d(0,0,0) rotate(0deg)', opacity:1},
+      {transform:`translate3d(${dx*.65}px,${up}px,0) rotate(${rot*.5}deg)`, opacity:1, offset:.4},
+      {transform:`translate3d(${dx}px,${up + innerHeight*.55}px,0) rotate(${rot}deg)`, opacity:0}
+    ], {duration:1800 + Math.random()*1500, easing:'cubic-bezier(.2,.7,.4,1)', fill:'both'}).onfinish = () => el.remove();
+  }
+}
+box.onclick = () => {
+  box.classList.add('is-active'); box.disabled = true;
+  confetti(box);
+  setTimeout(() => floatItem(CONFIG.sprites.plushie, box, 'Plushie (chạm để hiện gif, kéo để di chuyển)', plushieTap), 200);
+};
+
+const SFX = CONFIG.sfx.map(src => Object.assign(new Audio(src), { preload:'auto', volume:.6 }));
+let lastSfx = -1, lastGif = -1;
+function plushieTap(){
+  lastSfx = pick(SFX.length, lastSfx);
+  const a = SFX[lastSfx]; a.currentTime = 0; a.play().catch(() => {});
+  spawnGif();
+}
+
+const GIF_HOLD = 2500, GIF_IN = 250, GIF_OUT = 500;
+function parseGif(u){
+  u = String(u).trim();
+  const tag = (u.match(/<iframe[^>]*>/i) || [''])[0], attr = n => (tag.match(new RegExp(n + '=["\']?([^"\'\\s>]+)', 'i')) || [])[1] || '';
+  let src = attr('src') || u;
+  const ratio = attr('width') / attr('height') || 0;
+  const giphy = src.match(/giphy\.com\/embed\/(\w+)/i), tenor = src.match(/tenor\.com\/view\/[^\s?#]*-(\d+)/i),
+        klipy = src.match(/^https?:\/\/(?:www\.)?klipy\.com\/(gifs|stickers|clips|ai-gifs|static-memes)\/([^\s\/?#]+)/i);
+  if (giphy) return { img:`https://media.giphy.com/media/${giphy[1]}/giphy.gif`, embed:src, ratio };
+  if (tenor) src = 'https://tenor.com/embed/' + tenor[1];
+  else if (klipy) src = `https://klipy.com/${klipy[1]}/${klipy[2]}/player`;
+  if (/\.(mp4|webm)(?:[?#]|$)/i.test(src)) return { video:src, ratio };
+  return (tag || tenor || klipy || /\/embed\b/i.test(src)) ? { embed:src, ratio } : { img:src, ratio };
+}
+const GIFS = CONFIG.gifs.filter(Boolean).map(parseGif);
+GIFS.forEach(g => g.img && (new Image().src = g.img));
+
+function showGif(node, ratio){
+  const maxW = Math.min(300, innerWidth*.5), maxH = Math.min(260, innerHeight*.34);
+  let w = maxW, h = w/ratio; if (h > maxH){ h = maxH; w = h*ratio; }
+  const mx = innerWidth*.12, my = innerHeight*.12;
+  const x = mx + Math.random()*Math.max(0, innerWidth - 2*mx - w), y = my + Math.random()*Math.max(0, innerHeight - 2*my - h);
+  const el = document.createElement('div'); el.className = 'gif'; el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+  const inn = document.createElement('div'); inn.className = 'gif-in'; inn.append(node); el.append(inn); document.body.append(el); if (node.play) node.play().catch(()=>{});
+  const T = GIF_IN + GIF_HOLD + GIF_OUT;
+  inn.animate([
+    {opacity:0, transform:'scale(.6)', offset:0, easing:'cubic-bezier(.3,1.4,.5,1)'},
+    {opacity:1, transform:'scale(1)', offset:GIF_IN/T},
+    {opacity:1, transform:'scale(1)', offset:(GIF_IN+GIF_HOLD)/T, easing:'ease-in'},
+    {opacity:0, transform:'scale(.96)', offset:1}
+  ], {duration:T, fill:'both'}).onfinish = () => el.remove();
+}
+function embedNode(g){
+  const f = document.createElement('iframe'); f.src = g.embed; f.tabIndex = -1; f.allow = 'autoplay; fullscreen'; f.referrerPolicy = 'no-referrer-when-downgrade';
+  f.setAttribute('allowtransparency','true'); f.setAttribute('aria-hidden','true'); f.setAttribute('scrolling','no'); f.style.background = 'transparent'; return f;
+}
+function videoNode(u){
+  const v = document.createElement('video'); v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.preload = 'auto';
+  v.setAttribute('aria-hidden','true'); v.src = u; return v;
+}
+function spawnGif(){
+  if (!GIFS.length) return;
+  lastGif = pick(GIFS.length, lastGif);
+  const g = GIFS[lastGif];
+  const embed = () => g.embed && showGif(embedNode(g), g.ratio || 1);
+  const video = src => {
+    const v = videoNode(src);
+    v.onloadeddata = () => showGif(v, v.videoWidth && v.videoHeight ? v.videoWidth/v.videoHeight : g.ratio || 1);
+    v.onerror = embed;
+  };
+  if (g.video) return video(g.video);
+  if (!g.img) return embed();
+  const im = new Image(); im.alt = ''; im.draggable = false;
+  im.onload = () => showGif(im, im.naturalWidth / im.naturalHeight || 1);
+  im.onerror = () => g.embed ? embed() : video(g.img);
+  im.src = g.img;
+}
+
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!lb.hidden) zoomOut(); else if (letter.classList.contains('open')) closeLetter(); else blowOut();
+});
+</script>
+</body>
+</html>
